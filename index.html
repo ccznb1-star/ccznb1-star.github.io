@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的个人网站</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 弹窗公告 -->
+  <div id="announcement-modal" class="modal hidden">
+    <div class="modal-card">
+      <button id="modal-close" class="modal-close" aria-label="关闭">×</button>
+      <h2 id="announcement-title"></h2>
+      <p id="announcement-content"></p>
+      <button id="modal-confirm" class="btn">我知道了</button>
+    </div>
+  </div>
+
+  <!-- 页面主体 -->
+  <main class="container">
+    <h1 id="page-title"></h1>
+    <p id="subtitle" class="subtitle"></p>
+    <div id="paragraphs" class="paragraphs"></div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <!-- 先加载配置文件，再执行页面逻辑 -->
+  <script src="config.js"></script>
+  <script>
+    var cfg = window.SITE_CONFIG;
+
+    // ---------- 填充页面文字 ----------
+    document.title = cfg.siteTitle;
+    document.getElementById('page-title').textContent = cfg.pageTitle;
+    document.getElementById('subtitle').textContent = cfg.subtitle;
+    var list = document.getElementById('paragraphs');
+    cfg.paragraphs.forEach(function (text) {
+      var p = document.createElement('p');
+      p.textContent = text;
+      list.appendChild(p);
+    });
+    document.getElementById('footer').textContent = cfg.footer;
+
+    // ---------- 弹窗公告 ----------
+    var modal = document.getElementById('announcement-modal');
+    function closeModal() { modal.classList.add('hidden'); }
+
+    var a = cfg.announcement;
+    if (a && a.enabled) {
+      var seen = null;
+      try { seen = localStorage.getItem('announcement-seen'); } catch (e) {}
+
+      var shouldShow = a.showEveryTime || seen !== '1';
+      if (shouldShow) {
+        document.getElementById('announcement-title').textContent = a.title;
+        document.getElementById('announcement-content').textContent = a.content;
+        modal.classList.remove('hidden');
+
+        document.getElementById('modal-close').addEventListener('click', closeModal);
+        document.getElementById('modal-confirm').addEventListener('click', closeModal);
+        // 点击弹窗外面的灰色区域也可以关闭
+        modal.addEventListener('click', function (e) {
+          if (e.target === modal) closeModal();
+        });
+        // 按 Esc 键关闭
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeModal();
+        });
+
+        if (!a.showEveryTime) {
+          try { localStorage.setItem('announcement-seen', '1'); } catch (e) {}
+        }
+      }
+    }
+  </script>
+</body>
+</html>
